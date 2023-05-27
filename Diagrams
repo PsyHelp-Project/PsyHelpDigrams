@@ -1,0 +1,93 @@
+workspace "PsyHelp" "Aplicacion de ayuda para algunos problemas mentales" {
+
+    model {
+    usuario = person "Usuario" "Paciente que utiliza la aplicacion"
+    medico = Person "medico" "Doctor encargado del tratamiento"
+    clinica = person "clinica" "Centro de salud encargado del monitoreo del paciente"
+    
+    PsyHelp = softwareSystem "Psyhelp" "Aplicacion de tratamiento mental, que ayuda a regualar transtornos" {
+        movil = container "App movil" "Visualizador de citar y test mentales"
+        broker = container "Broker" "broker de mensajeria y eventos"  "Apache Kafka"
+        test = container "Test" "test mentales recurrentes a los pacientes"
+        BD = container "BD" "Base de datos relacional" "MySql" "DB" 
+        
+         
+        citas = container "Citas de los pacientes y medicos" {
+            fechaHora = component "Fecha y hora en la cual se desarrollara la cita"
+        }
+        agendarCitas = container "Agendar citas" "Agendar citas"
+        conector = container "Conector" "conector" {
+            log = component "Log" "Log de errores"
+            controlador = component "Controlador de tests" "Controlador de tests"
+            controladorSQL = component  "Conector a SQL" "Sistema relacional"
+            connectorNOSQl = component  "Conector a Casssandra " "Sistema no relacional"
+            connectorCDN = component  "Conector a CDN" "Almacenamiento S3"
+        }
+        BD2 = container "BD2" "Base de datos no relacional" "MongoDB" "DB2" 
+    }
+    DNI = softwareSystem "ID DNI" "Proveedor de identificacion u otros" "DNI"
+    historialcli = softwareSystem "Historial" "Proveedor del historial clinico de nuestro paciente"
+    EMR = softwareSystem "EMR" "Sistemas de gestión de registros médicos electrónicos"
+    
+    usuario -> PsyHelp "Obtiene tratamiento en base a su condicion"
+    medico -> PsyHelp "Realiza el tratamiento del paciente"
+    clinica -> PsyHelp "Obtienen estadisticas y beneficios"
+    PsyHelp -> DNI "autentica la cuenta"
+    PsyHelp -> EMR "almacena  datos medicos"
+    PsyHelp -> historialcli "carga datos clinicos"
+    
+    
+    usuario -> movil "usa"
+    medico -> movil "usa"
+    clinica -> movil "usa"
+    movil -> broker "usa"
+    broker -> test "consulta"
+    broker -> agendarCitas "consulta"
+    broker -> citas "consulta"
+    
+    citas -> conector "conectar a la BD"
+    test -> conector "conectar a la BD"
+    agendarCitas -> conector "conectar a la BD"
+    
+    controlador -> controladorSQL "Lee y escribe"
+    controlador -> connectorNOSQL  "Lee y escribe"
+    controlador -> connectorCDN  "Lee y escribe"
+    controlador -> log "graba errores"
+    connectorCDN -> EMR  "graba"
+    controladorSQL -> BD  "graba"
+    
+    connectorNOSQL -> BD2  "graba"
+
+    }
+    
+    views {
+        systemContext PsyHelp {
+            include *
+            autolayout
+        }
+        container PsyHelp {
+            include *
+        }
+        component conector {
+            include *
+        }
+        styles {
+            
+            element "GMAIL" {
+            shape "RoundedBox" 
+            background "#d49816" 
+            }
+            element "DB" {
+                shape "Cylinder" 
+                background "#088F8F" 
+                color "#ffffff" 
+            }
+            element "DB2" {
+                shape "Cylinder" 
+                background "#088F8F" 
+                color "#ffffff" 
+            }
+        }
+        theme default
+        }
+}
